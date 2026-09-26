@@ -1,0 +1,810 @@
+{
+  "dataset": "Amazon ML Challenge 2026",
+  "chunk_size": 100000,
+  "sources": {
+    "train_source1": {
+      "file": "data\\train\\train_source1.tsv",
+      "rows": 2206821,
+      "columns": [
+        "entity_id",
+        "business_name",
+        "business_address",
+        "country"
+      ],
+      "data_types": {
+        "entity_id": "str",
+        "business_name": "str",
+        "business_address": "str",
+        "country": "str"
+      },
+      "missing_values": {
+        "entity_id": 0,
+        "business_name": 0,
+        "business_address": 0,
+        "country": 0
+      },
+      "duplicate_rows_detected_within_chunks": 0,
+      "duplicate_entity_ids": 0,
+      "repeated_business_names": 668017,
+      "repeated_addresses": 76215,
+      "unique_entity_ids": 2206821,
+      "unique_business_names": 1538804,
+      "unique_addresses": 2130606,
+      "country_distribution": {
+        "US": 1323633,
+        "India": 883188
+      },
+      "top_business_names": [
+        [
+          "primary care group",
+          253
+        ],
+        [
+          "ear nose & throat group",
+          251
+        ],
+        [
+          "pediatric group",
+          222
+        ],
+        [
+          "womens health group",
+          220
+        ],
+        [
+          "physical therapy group",
+          218
+        ],
+        [
+          "pediatric dental group",
+          216
+        ],
+        [
+          "behavioral health group",
+          215
+        ],
+        [
+          "chiropractic group",
+          209
+        ],
+        [
+          "orthopedic group",
+          208
+        ],
+        [
+          "eye group",
+          207
+        ],
+        [
+          "dental group",
+          205
+        ],
+        [
+          "family group",
+          204
+        ],
+        [
+          "dermatology group",
+          202
+        ],
+        [
+          "vision group",
+          199
+        ],
+        [
+          "pediatric dentistry group",
+          198
+        ],
+        [
+          "urgent care group",
+          198
+        ],
+        [
+          "internal medicine group",
+          197
+        ],
+        [
+          "foot & ankle group",
+          191
+        ],
+        [
+          "oncology group",
+          188
+        ],
+        [
+          "urology group",
+          185
+        ]
+      ],
+      "top_addresses": [
+        [
+          "108 norle street, college twp, pa",
+          14
+        ],
+        [
+          "104 roadrunner circle, elephant butte, nm",
+          13
+        ],
+        [
+          "218 phillips street, storm lake, ia",
+          13
+        ],
+        [
+          "43 franklin street, delaware, oh",
+          13
+        ],
+        [
+          "55, lavkush vihar, singhpur, kachhar bithoor road, kalyanpur, kanpur nagar, uttar pradesh",
+          13
+        ],
+        [
+          "1921 willow park drive, fort worth, tx",
+          13
+        ],
+        [
+          "43233 clearnight terrace, loudoun county, va",
+          12
+        ],
+        [
+          "4804 gardenia avenue, glendale, az",
+          12
+        ],
+        [
+          "h. no. 154 - a, veer savarkar nagar, mini bypass road, p/o izzatnagar, bareilly, uttar pradesh",
+          12
+        ],
+        [
+          "no. 109, ferns meadows, avalahalli main road, bileshivale, bangalore north, bangalore, karnataka",
+          12
+        ],
+        [
+          "415 northfield boulevard, unit a11, murfreesboro, tn",
+          12
+        ],
+        [
+          "1948 weaver forest way, morrisville, nc",
+          12
+        ],
+        [
+          "333 court avenue, selmer, tn",
+          12
+        ],
+        [
+          "520 kathy lane, bldg 10, dayton, tn",
+          12
+        ],
+        [
+          "4024 high creek road, bismarck, nd",
+          12
+        ],
+        [
+          "3276 rosedale drive, arnold, mo",
+          12
+        ],
+        [
+          "snp towers, p.no 112, 3rd floor, janardhan hills, diamond hills, gachibow, li, hyderabad, rangareddy, telangana",
+          11
+        ],
+        [
+          "8 upper whitmoor drive, weldon spring, mo",
+          11
+        ],
+        [
+          "21646 cottonwood meadows trail, waller, tx",
+          11
+        ],
+        [
+          "2690 23rd street, tuscaloosa, al",
+          11
+        ]
+      ]
+    },
+    "train_source2": {
+      "file": "data\\train\\train_source2.tsv",
+      "rows": 5034616,
+      "columns": [
+        "entity_id",
+        "business_name",
+        "business_address",
+        "country"
+      ],
+      "data_types": {
+        "entity_id": "str",
+        "business_name": "str",
+        "business_address": "str",
+        "country": "str"
+      },
+      "missing_values": {
+        "entity_id": 0,
+        "business_name": 0,
+        "business_address": 168967,
+        "country": 0
+      },
+      "duplicate_rows_detected_within_chunks": 0,
+      "duplicate_entity_ids": 0,
+      "repeated_business_names": 841651,
+      "repeated_addresses": 565551,
+      "unique_entity_ids": 5034616,
+      "unique_business_names": 4192965,
+      "unique_addresses": 4300098,
+      "country_distribution": {
+        "US": 3016817,
+        "India": 2017799
+      },
+      "top_business_names": [
+        [
+          "primary care",
+          464
+        ],
+        [
+          "physical therapy",
+          458
+        ],
+        [
+          "womens health",
+          424
+        ],
+        [
+          "urgent care",
+          422
+        ],
+        [
+          "behavioral health",
+          416
+        ],
+        [
+          "pediatric dentistry",
+          406
+        ],
+        [
+          "internal medicine",
+          402
+        ],
+        [
+          "pediatric dental",
+          395
+        ],
+        [
+          "earnosethroat.com",
+          348
+        ],
+        [
+          "ear nose & throat",
+          289
+        ],
+        [
+          "the dent",
+          286
+        ],
+        [
+          "main street",
+          285
+        ],
+        [
+          "foot & ankle",
+          278
+        ],
+        [
+          "commission on",
+          260
+        ],
+        [
+          "straight edge",
+          257
+        ],
+        [
+          "office of",
+          228
+        ],
+        [
+          "board of",
+          223
+        ],
+        [
+          "back alley",
+          221
+        ],
+        [
+          "bureau of",
+          218
+        ],
+        [
+          "department of",
+          196
+        ]
+      ],
+      "top_addresses": [
+        [
+          "1948 weaver forest way, morrisville, nc",
+          19
+        ],
+        [
+          "842 38, caledonai township, wi",
+          18
+        ],
+        [
+          "66 frank edge, alto, tx",
+          17
+        ],
+        [
+          "g-58/1, benson cross road, bangalore., karnataka",
+          16
+        ],
+        [
+          "06252 taliaferro way, aleandria, va",
+          16
+        ],
+        [
+          "302 regency ct, ames, ia",
+          16
+        ],
+        [
+          "908 power road, mesa desert, az",
+          16
+        ],
+        [
+          "##1105 m, null, birmingham, al",
+          16
+        ],
+        [
+          "55 500, salt lake city, ut",
+          16
+        ],
+        [
+          "3710 goldfield rd, apache junction, az",
+          16
+        ],
+        [
+          "1110 henness road, casa grande, az",
+          15
+        ],
+        [
+          "17200 bell rd, surprise, az",
+          15
+        ],
+        [
+          "2782 330, burnet, tx",
+          15
+        ],
+        [
+          "53-57 valley vu condo, new milford, ct",
+          15
+        ],
+        [
+          "5335 fm 2412, gatesville, tx",
+          15
+        ],
+        [
+          "007826 jacqueline way, white city, or",
+          14
+        ],
+        [
+          "701 barberry spur avenue, delaware, oh",
+          14
+        ],
+        [
+          "2761 1/2 2 1/2, yuma, az",
+          14
+        ],
+        [
+          "12-1-331/c/1, dattatreya colony asif nagar, hyderabad, telangana",
+          14
+        ],
+        [
+          "3401- 150, milan, in",
+          14
+        ]
+      ]
+    },
+    "train_source3": {
+      "file": "data\\train\\train_source3.tsv",
+      "rows": 5285603,
+      "columns": [
+        "entity_id",
+        "business_name",
+        "business_address",
+        "country"
+      ],
+      "data_types": {
+        "entity_id": "str",
+        "business_name": "str",
+        "business_address": "str",
+        "country": "str"
+      },
+      "missing_values": {
+        "entity_id": 0,
+        "business_name": 0,
+        "business_address": 175916,
+        "country": 0
+      },
+      "duplicate_rows_detected_within_chunks": 0,
+      "duplicate_entity_ids": 0,
+      "repeated_business_names": 812130,
+      "repeated_addresses": 478500,
+      "unique_entity_ids": 5285603,
+      "unique_business_names": 4473473,
+      "unique_addresses": 4631187,
+      "country_distribution": {
+        "US": 3170056,
+        "India": 2115547
+      },
+      "top_business_names": [
+        [
+          "primary care",
+          462
+        ],
+        [
+          "physical therapy",
+          460
+        ],
+        [
+          "pediatric dental",
+          449
+        ],
+        [
+          "urgent care",
+          432
+        ],
+        [
+          "womens health",
+          422
+        ],
+        [
+          "pediatric dentistry",
+          407
+        ],
+        [
+          "internal medicine",
+          374
+        ],
+        [
+          "behavioral health",
+          374
+        ],
+        [
+          "pediatric",
+          321
+        ],
+        [
+          "earnosethroat.com",
+          307
+        ],
+        [
+          "the dent",
+          290
+        ],
+        [
+          "straight edge",
+          286
+        ],
+        [
+          "foot & ankle",
+          264
+        ],
+        [
+          "main street",
+          264
+        ],
+        [
+          "back alley",
+          252
+        ],
+        [
+          "ear nose & throat",
+          252
+        ],
+        [
+          "commission on",
+          239
+        ],
+        [
+          "division of",
+          234
+        ],
+        [
+          "office of",
+          228
+        ],
+        [
+          "board of",
+          225
+        ]
+      ],
+      "top_addresses": [
+        [
+          "ground floor, bangalore, ka",
+          29
+        ],
+        [
+          "floor, mumbai, mh",
+          26
+        ],
+        [
+          "18, kolkata, howrah, wb",
+          26
+        ],
+        [
+          "303, mumbai, mh",
+          25
+        ],
+        [
+          "12, ahmedabad, gj",
+          23
+        ],
+        [
+          "101, mumbai, mumbai city, mh",
+          23
+        ],
+        [
+          "4, mumbai, mh",
+          23
+        ],
+        [
+          "floor, bangalore, ka",
+          22
+        ],
+        [
+          "7, kolkata, howrah, wb",
+          21
+        ],
+        [
+          "5, ahmedabad, gj",
+          21
+        ],
+        [
+          "601, mumbai, mh",
+          21
+        ],
+        [
+          "301, mumbai, mumbai city, mh",
+          21
+        ],
+        [
+          "3, ahmedabad, gj",
+          21
+        ],
+        [
+          "1, kolkata, howrah, wb",
+          21
+        ],
+        [
+          "2, mumbai, mh",
+          20
+        ],
+        [
+          "10, kolkata, howrah, wb",
+          20
+        ],
+        [
+          "2, mumbai, mumbai city, mh",
+          20
+        ],
+        [
+          "3, kolkata, howrah, wb",
+          20
+        ],
+        [
+          "4, kolkata, howrah, wb",
+          20
+        ],
+        [
+          "2, kolkata, howrah, wb",
+          20
+        ]
+      ]
+    }
+  },
+  "ground_truth": {
+    "file": "data\\train\\train_ground_truth.tsv",
+    "rows": 2206821,
+    "columns": [
+      "source1_entity_id",
+      "matched_entity_ids"
+    ],
+    "source2_match_columns": [
+      "matched_entity_ids"
+    ],
+    "source3_match_columns": [
+      "matched_entity_ids"
+    ],
+    "rows_with_source2_match": 1919076,
+    "rows_with_source3_match": 1940545,
+    "rows_with_both_sources": 1776047,
+    "rows_with_neither_source": 123247,
+    "total_match_count_distribution": {
+      "0": 123247,
+      "1": 119157,
+      "2": 375212,
+      "3": 530841,
+      "4": 484115,
+      "5": 321957,
+      "6": 164868,
+      "7": 63968,
+      "8": 18680,
+      "9": 4205,
+      "10": 534,
+      "11": 37
+    },
+    "source2_match_count_distribution": {
+      "0": 287745,
+      "1": 789108,
+      "2": 652779,
+      "3": 333957,
+      "4": 119078,
+      "5": 24154
+    },
+    "source3_match_count_distribution": {
+      "0": 266276,
+      "1": 716417,
+      "2": 668375,
+      "3": 372443,
+      "4": 145116,
+      "5": 35378,
+      "6": 2816
+    },
+    "top_source2_match_ids": [
+      [
+        "S2-681193310",
+        1
+      ],
+      [
+        "S2-743505751",
+        1
+      ],
+      [
+        "S2-249013014",
+        1
+      ],
+      [
+        "S2-197070651",
+        1
+      ],
+      [
+        "S2-790675320",
+        1
+      ],
+      [
+        "S2-479876582",
+        1
+      ],
+      [
+        "S2-153058913",
+        1
+      ],
+      [
+        "S2-24659151",
+        1
+      ],
+      [
+        "S2-478959098",
+        1
+      ],
+      [
+        "S2-553508714",
+        1
+      ],
+      [
+        "S2-625774905",
+        1
+      ],
+      [
+        "S2-755677256",
+        1
+      ],
+      [
+        "S2-660036492",
+        1
+      ],
+      [
+        "S2-648035184",
+        1
+      ],
+      [
+        "S2-383871912",
+        1
+      ],
+      [
+        "S2-356983532",
+        1
+      ],
+      [
+        "S2-7028416",
+        1
+      ],
+      [
+        "S2-442723188",
+        1
+      ],
+      [
+        "S2-157073701",
+        1
+      ],
+      [
+        "S2-487600131",
+        1
+      ]
+    ],
+    "top_source3_match_ids": [
+      [
+        "S3-775321672",
+        1
+      ],
+      [
+        "S3-11291185",
+        1
+      ],
+      [
+        "S3-860443364",
+        1
+      ],
+      [
+        "S3-478195123",
+        1
+      ],
+      [
+        "S3-384364074",
+        1
+      ],
+      [
+        "S3-878454467",
+        1
+      ],
+      [
+        "S3-679606215",
+        1
+      ],
+      [
+        "S3-728090388",
+        1
+      ],
+      [
+        "S3-928796641",
+        1
+      ],
+      [
+        "S3-449308785",
+        1
+      ],
+      [
+        "S3-187831601",
+        1
+      ],
+      [
+        "S3-641489370",
+        1
+      ],
+      [
+        "S3-476250621",
+        1
+      ],
+      [
+        "S3-804600254",
+        1
+      ],
+      [
+        "S3-274817120",
+        1
+      ],
+      [
+        "S3-312496301",
+        1
+      ],
+      [
+        "S3-588502663",
+        1
+      ],
+      [
+        "S3-74481402",
+        1
+      ],
+      [
+        "S3-576451439",
+        1
+      ],
+      [
+        "S3-352439310",
+        1
+      ]
+    ]
+  }
+}
