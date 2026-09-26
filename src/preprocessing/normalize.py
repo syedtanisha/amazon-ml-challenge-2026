@@ -210,3 +210,51 @@ def normalize_business_name_full(value: Any) -> str:
     2. Legal suffix normalization.
     """
     return normalize_legal_suffixes(value)
+# Common address abbreviations.
+ADDRESS_ABBREVIATION_MAP = {
+    "rd": "road",
+    "st": "street",
+    "ave": "avenue",
+    "av": "avenue",
+    "blvd": "boulevard",
+    "boul": "boulevard",
+    "ln": "lane",
+    "dr": "drive",
+    "hwy": "highway",
+    "pkwy": "parkway",
+    "ct": "court",
+    "cir": "circle",
+    "pl": "place",
+    "ter": "terrace",
+    "trl": "trail",
+    "way": "way",
+    "sq": "square",
+    "apt": "apartment",
+    "ste": "suite",
+    "fl": "floor",
+    "bldg": "building",
+    "rm": "room",
+    "no": "number",
+}
+
+
+def normalize_address(value: Any) -> str:
+    """
+    Normalize a business address.
+
+    Applies general text normalization followed by common
+    address abbreviation expansion.
+    """
+    normalized = normalize_text(value)
+
+    if not normalized:
+        return ""
+
+    tokens = normalized.split()
+
+    normalized_tokens = [
+        ADDRESS_ABBREVIATION_MAP.get(token, token)
+        for token in tokens
+    ]
+
+    return " ".join(normalized_tokens)
