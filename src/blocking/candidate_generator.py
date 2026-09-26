@@ -1,5 +1,6 @@
+from collections import defaultdict, Counter
+
 import pandas as pd
-from collections import defaultdict
 
 from src.preprocessing.normalize import (
     normalize_business_name,
@@ -8,9 +9,23 @@ from src.preprocessing.normalize import (
 )
 
 
-# ============================================================
-# Generic tokens that are not useful for blocking
-# ============================================================
+# ------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------
+
+MIN_TOKEN_LENGTH = 3
+
+# A token appearing in more than this many target records is
+# considered too common to use as a standalone address block.
+DEFAULT_MAX_ADDRESS_BUCKET = 5000
+
+# Number of rare address tokens to use for each S1 entity.
+DEFAULT_ADDRESS_KEYS = 2
+
+
+# ------------------------------------------------------------
+# Generic name tokens
+# ------------------------------------------------------------
 
 GENERIC_NAME_TOKENS = {
     "llc",
@@ -22,6 +37,7 @@ GENERIC_NAME_TOKENS = {
     "limited",
     "ltd",
     "plc",
+    "llp",
     "the",
     "private",
     "pvt",
@@ -31,76 +47,50 @@ GENERIC_NAME_TOKENS = {
     "sri",
     "shri",
     "india",
-    "new",
-}
-
-GENERIC_ADDRESS_TOKENS = {
-    "road",
-    "rd",
-    "street",
-    "st",
-    "floor",
-    "avenue",
-    "ave",
-    "drive",
-    "dr",
-    "lane",
-    "ln",
-    "city",
-    "near",
-    "plot",
-    "door",
-    "building",
-    "block",
-    "district",
-    "state",
-    "west",
-    "east",
-    "north",
-    "south",
-    "area",
-    "maharashtra",
-    "delhi",
-    "mumbai",
-    "pradesh",
-    "karnataka",
-    "bangalore",
-    "nadu",
-    "tamil",
-    "bengal",
-    "sector",
-    "colony",
-    "gujarat",
-    "flat",
-    "kolkata",
-    "pune",
-    "telangana",
+    "global",
+    "group",
+    "services",
+    "enterprise",
+    "enterprises",
+    "center",
+    "centre",
+    "store",
+    "shop",
+    "solutions",
+    "trading",
+    "traders",
+    "technology",
+    "technologies",
+    "international",
+    "holdings",
+    "industries",
+    "industry",
 }
 
 
-# ============================================================
-# Business-name blocking token
-# ============================================================
+# ------------------------------------------------------------
+# Normalization helpers
+# ------------------------------------------------------------
 
-def first_name_token(name: str) -> str:
-    """
-    Return the first informative token from a business name.
-
-    Generic/legal tokens such as:
-    inc, llc, private, ltd, sri, shri
-    are ignored.
-    """
-
-    name = normalize_business_name(name)
-
-    if not name:
+def normalize_country(country):
+    if country is None:
         return ""
 
-    tokens = name.split()
+    return str(country).strip().lower()
 
-    for token in tokens:
+def first_name_token(name):
+    """
+    Return the first informative business-name token.
+    """
+
+    normalized = normalize_business_name_full(name)
+
+    if not normalized:
+        return ""
+
+    for token in normalized.split():
         if (
-            len(token) >= 3
+            len(token) >= MIN_TOKEN_LENGTH
             and token not in GENERIC_NAME_TOKENS
         ):
             return token
@@ -108,232 +98,300 @@ def first_name_token(name: str) -> str:
     return ""
 
 
-# ============================================================
-# Legal-suffix normalized name token
-# ============================================================
-
-def first_name_token_legal(name: str) -> str:
+def first_name_token_legal(name):
     """
-    Return the first informative token after legal-suffix normalization.
+    Return the first informative business-name token
+    after legal suffix normalization.
+    """
+    return first_name_token(name)
 
-    Used for the improved name-blocking strategy.
+
+def name_prefix(name, length=4):
+    """
+    Return a short normalized business-name prefix.
     """
 
-    name = normalize_business_name_full(name)
+    normalized = normalize_business_name(name)
 
-    if not name:
+    if not normalized:
         return ""
 
-    tokens = name.split()
+    normalized = normalized.replace(" ", "")
 
-    for token in tokens:
-        if (
-            len(token) >= 3
-            and token not in GENERIC_NAME_TOKENS
-        ):
-            return token
+    if len(normalized) < length:
+        return ""
 
-    return ""
+    return normalized[:length]
 
 
-# ============================================================
-# Address blocking tokens
-# ============================================================
-
-def address_tokens(address: str) -> list[str]:
+def address_tokens(address):
     """
-    Extract informative address tokens.
+    Return normalized address tokens.
 
-    Very common address words such as road, street,
-    city, floor, etc. are ignored.
+    No large hard-coded city list is used here.
+    Token usefulness is determined from target-data frequency.
     """
 
-    address = normalize_address(address)
+    normalized = normalize_address(address)
 
-    if not address:
+    if not normalized:
         return []
 
-    tokens = address.split()
+    tokens = []
 
-    result = []
+    for token in normalized.split():
 
-    for token in tokens:
-
-        if len(token) < 3:
+        if len(token) < MIN_TOKEN_LENGTH:
             continue
 
-        if token in GENERIC_ADDRESS_TOKENS:
-            continue
+        tokens.append(token)
 
-        result.append(token)
-
-    return result
+    return list(dict.fromkeys(tokens))
 
 
-# ============================================================
-# Build indexes for S2/S3
-# ============================================================
+# ------------------------------------------------------------
+# Index construction
+# ------------------------------------------------------------
 
-def build_indexes(source_df: pd.DataFrame):
+def build_indexes(
+    source23_df,
+    max_address_bucket=DEFAULT_MAX_ADDRESS_BUCKET,
+):
     """
-    Build two blocking indexes.
+    Build blocking indexes for Source 2 + Source 3.
 
-    Name index:
-        (country, informative_name_token)
-            -> entity IDs
+    Returns:
 
-    Address index:
-        (country, informative_address_token)
-            -> entity IDs
+        name_index
+        address_index
+        exact_name_index
+        exact_address_index
+        address_frequency
     """
 
     name_index = defaultdict(list)
     address_index = defaultdict(list)
 
-    for row in source_df.itertuples(index=False):
+    exact_name_index = defaultdict(list)
+    exact_address_index = defaultdict(list)
+
+    address_frequency = Counter()
+
+    # --------------------------------------------------------
+    # First pass:
+    # count address-token frequency
+    # --------------------------------------------------------
+
+    for row in source23_df.itertuples(index=False):
+
+        country = normalize_country(row.country)
+
+        for token in address_tokens(
+            row.business_address
+        ):
+            address_frequency[
+                (country, token)
+            ] += 1
+
+    # --------------------------------------------------------
+    # Second pass:
+    # build indexes
+    # --------------------------------------------------------
+
+    for row in source23_df.itertuples(index=False):
 
         entity_id = row.entity_id
-
-        country = str(
-            row.country
-        ).strip().lower()
+        country = normalize_country(row.country)
 
         # -------------------------
-        # Name index
+        # Name
         # -------------------------
 
-        name_token = first_name_token_legal(
+        name_token = first_name_token(
             row.business_name
         )
 
         if name_token:
-
-            key = (
-                country,
-                name_token,
-            )
-
-            name_index[key].append(
-                entity_id
-            )
+            name_index[
+                (country, name_token)
+            ].append(entity_id)
 
         # -------------------------
-        # Address index
+        # Exact normalized name
+        # -------------------------
+
+        normalized_name = normalize_business_name(
+            row.business_name
+        )
+
+        if normalized_name:
+            exact_name_index[
+                (country, normalized_name)
+            ].append(entity_id)
+
+        # -------------------------
+        # Exact normalized address
+        # -------------------------
+
+        normalized_address = normalize_address(
+            row.business_address
+        )
+
+        if normalized_address:
+            exact_address_index[
+                (country, normalized_address)
+            ].append(entity_id)
+
+        # -------------------------
+        # Address tokens
         # -------------------------
 
         for token in address_tokens(
             row.business_address
         ):
 
-            key = (
-                country,
-                token,
-            )
+            key = (country, token)
 
-            address_index[key].append(
-                entity_id
-            )
+            # Don't create enormous buckets.
+            if address_frequency[key] <= max_address_bucket:
+                address_index[key].append(entity_id)
 
-    return name_index, address_index
-
-
-# ============================================================
-# Generate candidates
-# ============================================================
-
-def generate_candidates(
-    source1_df: pd.DataFrame,
-    source23_df: pd.DataFrame,
-    max_candidates_per_entity: int = 100,
-) -> pd.DataFrame:
-    """
-    Generate candidate S2/S3 matches for Source 1.
-
-    Blocking rules:
-
-        1. Same country + informative business-name token
-        2. Same country + informative address token
-
-    Candidates from both rules are combined.
-    """
-
-    name_index, address_index = build_indexes(
-        source23_df
+    return (
+        name_index,
+        address_index,
+        exact_name_index,
+        exact_address_index,
+        address_frequency,
     )
 
+
+# ------------------------------------------------------------
+# Candidate generation
+# ------------------------------------------------------------
+
+def generate_candidates_from_indexes(
+    source1_df,
+    name_index,
+    address_index,
+    exact_name_index,
+    exact_address_index,
+    address_frequency,
+    max_address_bucket=DEFAULT_MAX_ADDRESS_BUCKET,
+    address_keys_per_entity=DEFAULT_ADDRESS_KEYS,
+):
+    """
+    Generate candidate S2/S3 entities for every S1 entity using pre-built indexes.
+    """
     results = []
 
-    for row in source1_df.itertuples(
-        index=False
-    ):
+    for row in source1_df.itertuples(index=False):
 
         s1_id = row.entity_id
-
-        country = str(
-            row.country
-        ).strip().lower()
+        country = normalize_country(row.country)
 
         candidates = set()
 
-        # ====================================================
-        # BLOCK 1
-        # Country + business-name token
-        # ====================================================
+        # ----------------------------------------------------
+        # 1. Name blocking
+        # ----------------------------------------------------
 
-        name_token = first_name_token_legal(
+        name_token = first_name_token(
             row.business_name
         )
 
         if name_token:
 
-            key = (
-                country,
-                name_token,
-            )
-
             candidates.update(
                 name_index.get(
-                    key,
-                    []
+                    (country, name_token),
+                    (),
                 )
             )
 
-        # ====================================================
-        # BLOCK 2
-        # Country + address tokens
-        # ====================================================
+        # ----------------------------------------------------
+        # 2. Address blocking
+        # ----------------------------------------------------
 
-        for token in address_tokens(
+        address_tokens_s1 = address_tokens(
             row.business_address
-        ):
+        )
 
-            key = (
-                country,
-                token,
+        # Rank tokens by frequency.
+        #
+        # Lower frequency = more selective.
+        #
+        ranked_tokens = sorted(
+            address_tokens_s1,
+            key=lambda token: address_frequency.get(
+                (country, token),
+                float("inf"),
+            ),
+        )
+
+        selected_tokens = []
+
+        for token in ranked_tokens:
+
+            frequency = address_frequency.get(
+                (country, token),
+                0,
             )
+
+            if (
+                frequency > 0
+                and frequency <= max_address_bucket
+            ):
+                selected_tokens.append(token)
+
+            if len(selected_tokens) >= address_keys_per_entity:
+                break
+
+        for token in selected_tokens:
 
             candidates.update(
                 address_index.get(
-                    key,
-                    []
+                    (country, token),
+                    (),
                 )
             )
 
-        # ====================================================
-        # Limit candidates
-        # ====================================================
+        # ----------------------------------------------------
+        # 3. Exact name
+        # ----------------------------------------------------
 
-        if len(candidates) > max_candidates_per_entity:
+        normalized_name = normalize_business_name(
+            row.business_name
+        )
 
-            candidates = set(
-                list(candidates)[
-                    :max_candidates_per_entity
-                ]
+        if normalized_name:
+
+            candidates.update(
+                exact_name_index.get(
+                    (country, normalized_name),
+                    (),
+                )
             )
 
-        # ====================================================
-        # Save candidate pairs
-        # ====================================================
+        # ----------------------------------------------------
+        # 4. Exact address
+        # ----------------------------------------------------
+
+        normalized_address = normalize_address(
+            row.business_address
+        )
+
+        if normalized_address:
+
+            candidates.update(
+                exact_address_index.get(
+                    (country, normalized_address),
+                    (),
+                )
+            )
+
+        # ----------------------------------------------------
+        # Store
+        # ----------------------------------------------------
 
         for candidate_id in candidates:
 
@@ -350,4 +408,146 @@ def generate_candidates(
             "source1_entity_id",
             "candidate_entity_id",
         ],
+    )
+
+
+def generate_candidates(
+    source1_df,
+    source23_df,
+    max_address_bucket=DEFAULT_MAX_ADDRESS_BUCKET,
+    address_keys_per_entity=DEFAULT_ADDRESS_KEYS,
+):
+    """
+    Generate candidate S2/S3 entities for every S1 entity.
+
+    Blocking strategy:
+
+    1. Country + informative business-name token
+    2. Country + rare/selective address tokens
+    3. Country + exact normalized business name
+    4. Country + exact normalized address
+
+    Address tokens are ranked by their frequency in S2/S3.
+    The rarest useful tokens are preferred.
+
+    Returns:
+
+        DataFrame with:
+            source1_entity_id
+            candidate_entity_id
+    """
+
+    indexes = build_indexes(
+        source23_df,
+        max_address_bucket=max_address_bucket,
+    )
+
+    return generate_candidates_from_indexes(
+        source1_df,
+        *indexes,
+        max_address_bucket=max_address_bucket,
+        address_keys_per_entity=address_keys_per_entity,
+    )
+
+
+# ------------------------------------------------------------
+# Chunk-friendly index construction
+# ------------------------------------------------------------
+
+def build_indexes_from_chunks(
+    source23_chunks,
+    max_address_bucket=DEFAULT_MAX_ADDRESS_BUCKET,
+):
+    """
+    Build indexes from an iterable of DataFrame chunks.
+
+    Useful for the large 10M+ row datasets.
+    """
+
+    if not isinstance(source23_chunks, (list, tuple)):
+        source23_chunks = list(source23_chunks)
+
+    name_index = defaultdict(list)
+    address_index = defaultdict(list)
+
+    exact_name_index = defaultdict(list)
+    exact_address_index = defaultdict(list)
+
+    address_frequency = Counter()
+
+    # --------------------------------------------------------
+    # First pass: count address token frequencies
+    # --------------------------------------------------------
+
+    for chunk in source23_chunks:
+
+        for row in chunk.itertuples(index=False):
+
+            country = normalize_country(row.country)
+
+            for token in address_tokens(
+                row.business_address
+            ):
+
+                address_frequency[
+                    (country, token)
+                ] += 1
+
+    # --------------------------------------------------------
+    # Second pass: build indexes
+    # --------------------------------------------------------
+
+    for chunk in source23_chunks:
+
+        for row in chunk.itertuples(index=False):
+
+            entity_id = row.entity_id
+            country = normalize_country(row.country)
+
+            # Name token
+            name_token = first_name_token(
+                row.business_name
+            )
+
+            if name_token:
+                name_index[
+                    (country, name_token)
+                ].append(entity_id)
+
+            # Exact normalized name
+            normalized_name = normalize_business_name(
+                row.business_name
+            )
+
+            if normalized_name:
+                exact_name_index[
+                    (country, normalized_name)
+                ].append(entity_id)
+
+            # Exact normalized address
+            normalized_address = normalize_address(
+                row.business_address
+            )
+
+            if normalized_address:
+                exact_address_index[
+                    (country, normalized_address)
+                ].append(entity_id)
+
+            # Address tokens
+            for token in address_tokens(
+                row.business_address
+            ):
+
+                key = (country, token)
+
+                if address_frequency[key] <= max_address_bucket:
+                    address_index[key].append(entity_id)
+
+    return (
+        name_index,
+        address_index,
+        exact_name_index,
+        exact_address_index,
+        address_frequency,
     )
