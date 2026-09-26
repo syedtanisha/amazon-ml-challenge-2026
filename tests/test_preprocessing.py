@@ -42,6 +42,8 @@ def test_dotted_legal_suffixes():
     assert normalize_legal_suffixes("Demo L.L.C.") == "demo llc"
     assert normalize_legal_suffixes("Demo P.L.C.") == "demo plc"
     assert normalize_legal_suffixes("Demo L.L.P.") == "demo llp"
+    assert normalize_legal_suffixes("Demo P.C.") == "demo pc"
+    assert normalize_legal_suffixes("Demo PC") == "demo pc"
 
 
 def test_address_normalization():

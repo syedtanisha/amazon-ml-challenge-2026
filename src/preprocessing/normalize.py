@@ -170,10 +170,14 @@ def normalize_legal_suffixes(value: Any) -> str:
             index += 3
             continue
 
+        if tokens[index:index + 2] == ["p", "c"]:
+            result.append("pc")
+            index += 2
+            continue
         if tokens[index:index + 3] == ["l", "l", "p"]:
             result.append("llp")
             index += 3
-            continue
+            continue 
 
         # Handle normal one-token legal/business abbreviations.
         result.append(LEGAL_SUFFIX_MAP.get(tokens[index], tokens[index]))
