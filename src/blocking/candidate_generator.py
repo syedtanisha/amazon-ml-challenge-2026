@@ -3,6 +3,7 @@ from collections import defaultdict
 
 from src.preprocessing.normalize import (
     normalize_business_name,
+    normalize_business_name_full,
     normalize_address,
 )
 
@@ -62,18 +63,18 @@ GENERIC_ADDRESS_TOKENS = {
     "delhi",
     "mumbai",
     "pradesh",
-"karnataka",
-"bangalore",
-"nadu",
-"tamil",
-"bengal",
-"sector",
-"colony",
-"gujarat",
-"flat",
-"kolkata",
-"pune",
-"telangana",
+    "karnataka",
+    "bangalore",
+    "nadu",
+    "tamil",
+    "bengal",
+    "sector",
+    "colony",
+    "gujarat",
+    "flat",
+    "kolkata",
+    "pune",
+    "telangana",
 }
 
 
@@ -91,6 +92,34 @@ def first_name_token(name: str) -> str:
     """
 
     name = normalize_business_name(name)
+
+    if not name:
+        return ""
+
+    tokens = name.split()
+
+    for token in tokens:
+        if (
+            len(token) >= 3
+            and token not in GENERIC_NAME_TOKENS
+        ):
+            return token
+
+    return ""
+
+
+# ============================================================
+# Legal-suffix normalized name token
+# ============================================================
+
+def first_name_token_legal(name: str) -> str:
+    """
+    Return the first informative token after legal-suffix normalization.
+
+    Used for the improved name-blocking strategy.
+    """
+
+    name = normalize_business_name_full(name)
 
     if not name:
         return ""
@@ -173,7 +202,7 @@ def build_indexes(source_df: pd.DataFrame):
         # Name index
         # -------------------------
 
-        name_token = first_name_token(
+        name_token = first_name_token_legal(
             row.business_name
         )
 
@@ -251,7 +280,7 @@ def generate_candidates(
         # Country + business-name token
         # ====================================================
 
-        name_token = first_name_token(
+        name_token = first_name_token_legal(
             row.business_name
         )
 
