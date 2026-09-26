@@ -258,3 +258,52 @@ def normalize_address(value: Any) -> str:
     ]
 
     return " ".join(normalized_tokens)
+def normalize_business_record(
+    business_name: Any = None,
+    business_address: Any = None,
+    country: Any = None,
+) -> dict[str, str]:
+    """
+    Normalize the main fields of a business record.
+
+    Missing fields are represented by empty strings.
+
+    Returns
+    -------
+    dict[str, str]
+        Dictionary containing normalized business name,
+        address, and country.
+    """
+    return {
+        "business_name": normalize_business_name_full(business_name),
+        "business_address": normalize_address(business_address),
+        "country": normalize_country(country),
+    }
+
+
+def is_missing(value: Any) -> bool:
+    """
+    Check whether a value is missing or effectively empty.
+    """
+    if value is None:
+        return True
+
+    try:
+        if value != value:
+            return True
+    except (TypeError, ValueError):
+        pass
+
+    return not str(value).strip()
+
+
+def normalize_optional_text(value: Any) -> str:
+    """
+    Normalize an optional text field.
+
+    Missing values return an empty string.
+    """
+    if is_missing(value):
+        return ""
+
+    return normalize_text(value)
