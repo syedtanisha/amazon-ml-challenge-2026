@@ -112,3 +112,10 @@ def test_missing_business_record():
         "business_address": "",
         "country": "",
     }
+def test_real_world_address_identifiers():
+    assert normalize_address("H No. 16-2-751/A/70") == "h number 16 2 751 a 70"
+    assert normalize_address("S No. 42/2/3, H No. B/5") == "s number 42 2 3 h number b 5"
+    assert normalize_address("37B, Pushtikar Chs Ltd") == "37b pushtikar chs ltd"
+    assert normalize_address("Sub Plot No.-L6/29") == "sub plot number l6 29"
+    assert normalize_address("Plot No.-780") == "plot number 780"
+    assert normalize_address("A-115, Neb Sarai") == "a 115 neb sarai"    
