@@ -108,3 +108,105 @@ def normalize_tokens(value: Any) -> list[str]:
         return []
 
     return normalized.split()
+# Common business/legal abbreviations.
+LEGAL_SUFFIX_MAP = {
+    "pvt": "private",
+    "pvt.": "private",
+    "private": "private",
+    "ltd": "limited",
+    "ltd.": "limited",
+    "limited": "limited",
+    "inc": "incorporated",
+    "inc.": "incorporated",
+    "incorporated": "incorporated",
+    "corp": "corporation",
+    "corp.": "corporation",
+    "corporation": "corporation",
+    "co": "company",
+    "co.": "company",
+    "company": "company",
+    "llc": "llc",
+    "l l c": "llc",
+    "plc": "plc",
+    "p l c": "plc",
+    "llp": "llp",
+    "l l p": "llp",
+}
+
+
+def normalize_legal_suffixes(value: Any) -> str:
+    """
+    Normalize common business/legal suffix abbreviations.
+
+    Handles both normal abbreviations such as:
+        Pvt. -> private
+        Ltd. -> limited
+        Inc. -> incorporated
+
+    and dotted legal forms such as:
+        L.L.C. -> llc
+        P.L.C. -> plc
+        L.L.P. -> llp
+    """
+    normalized = normalize_text(value)
+
+    if not normalized:
+        return ""
+
+    tokens = normalized.split()
+    result = []
+    index = 0
+
+    while index < len(tokens):
+
+        # Handle dotted legal abbreviations after punctuation removal.
+        if tokens[index:index + 3] == ["l", "l", "c"]:
+            result.append("llc")
+            index += 3
+            continue
+
+        if tokens[index:index + 3] == ["p", "l", "c"]:
+            result.append("plc")
+            index += 3
+            continue
+
+        if tokens[index:index + 3] == ["l", "l", "p"]:
+            result.append("llp")
+            index += 3
+            continue
+
+        # Handle normal one-token legal/business abbreviations.
+        result.append(LEGAL_SUFFIX_MAP.get(tokens[index], tokens[index]))
+        index += 1
+
+    return " ".join(result)
+    """
+    Normalize common business/legal suffix abbreviations.
+
+    The function first applies general text normalization and then
+    replaces recognized legal/business suffix tokens.
+    """
+    normalized = normalize_text(value)
+
+    if not normalized:
+        return ""
+
+    tokens = normalized.split()
+
+    normalized_tokens = [
+        LEGAL_SUFFIX_MAP.get(token, token)
+        for token in tokens
+    ]
+
+    return " ".join(normalized_tokens)
+
+
+def normalize_business_name_full(value: Any) -> str:
+    """
+    Fully normalize a business name.
+
+    This combines:
+    1. General text normalization.
+    2. Legal suffix normalization.
+    """
+    return normalize_legal_suffixes(value)
